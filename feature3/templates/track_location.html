@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tracking Location</title>
+    <style>
+        #trackLog {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+    <h2>WebSocket Tracking Location</h2>
+    <h2>{{order_id}}</h2>
+    <div id="trackLog"></div>
+
+    <script>
+        const orderId = {{ order_id }};
+        const trackLog = document.getElementById('trackLog');
+        const socket = io();
+
+        socket.on('connect', () => {
+            socket.emit('join', { order_id: orderId, role: 'customer', sid: socket.id });
+        });
+
+        socket.on('receive_location', data => {
+            const messageElem = document.createElement('div');
+            messageElem.textContent = JSON.stringify(data);
+            trackLog.appendChild(messageElem);
+            trackLog.scrollTop = trackLog.scrollHeight;
+        });
+
+        socket.on('disconnect', () => {
+            const messageElem = document.createElement('div');
+            messageElem.textContent = "Connection closed.";
+            trackLog.appendChild(messageElem);
+        });
+    </script>
+</body>
+
+</html>

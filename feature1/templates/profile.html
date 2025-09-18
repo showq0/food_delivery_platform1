@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+</head>
+
+<body>
+    <h2>Profile</h2>
+    <h3>Update Profile</h3>
+    <form method="post" action="/profile">
+        <label>Phone Number:</label><br>
+        <input id="phone" name="phone_number" placeholder="Phone Number" value="{{ user.phone_number or '' }}"><br><br>
+
+        <label>Address:</label><br>
+        <input id="address" name="address" placeholder="Address" value="{{ user.address or '' }}"><br><br>
+
+        <label>Payment Info:</label><br>
+        <input id="payment" name="payment_info" placeholder="Payment Info"
+            value="{{ user.payment_info or '' }}"><br><br>
+
+        <button type="submit">Update Profile</button>
+    </form>
+
+</body>
+
+</html>

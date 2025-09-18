@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <style>
+        #chat-box {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+    <h2>Chat {{chat.id}} between {{chat.customer.username}} and {{chat.agent.username}}</h2>
+    <h3>Name: {{user.username}}</h3>
+
+    <div id="chat-box">
+        {% for message in messages %}
+        <p><b>{{ message.sender.username }}:</b> {{ message.content }}</p>
+        {% endfor %}
+    </div>
+    <div id="typingIndicator"></div>
+
+    <input type="text" id="message-input" placeholder="Type a message..." />
+    <button id="send-btn">Send</button>
+
+    <script>
+        const socket = io();
+
+        const sender_name = "{{user.username}}";
+        const sender_id = {{ user.id }};
+        const chat_id = {{ chat.id }};
+        const inputField = document.getElementById('message-input');
+        const typingDiv = document.getElementById('typingIndicator');
+        let typingTimeout;
+
+        socket.emit('join', { chat_id: chat_id });
+
+        socket.on('message', function (data) {
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<p><b>${data.sender_name}:</b> ${data.message}</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        socket.on('typing', function (data) {
+            if (sender_id !== data.sender_id) {
+                typingDiv.textContent = data.typing_status === 'start' ? `${data.sender_name} is typing...` : '';
+            }
+        });
+
+        document.getElementById("send-btn").onclick = function () {
+            const message = inputField.value;
+            if (message.trim()) {
+                socket.emit('message', { chat_id, sender_name, sender_id, message });
+                inputField.value = "";
+            }
+        };
+
+        inputField.addEventListener('input', () => {
+            socket.emit('typing', { chat_id, sender_name, sender_id, typing_status: 'start' });
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('typing', { chat_id, sender_name, sender_id, typing_status: 'stop' });
+            }, 2000);
+        });
+    </script>
+</body>
+
+</html>

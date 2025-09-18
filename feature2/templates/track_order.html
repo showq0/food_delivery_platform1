@@ -1,0 +1,36 @@
+<h2>Order Tracking</h2>
+
+<h2>product1</h2>
+{% if order_id %}
+<h2>Order ID: {{ order_id }}</h2>
+{% endif %}
+<div id="sse-data"></div>
+<button id="track-btn" onclick="startSSE()">track</button>
+<script>
+    const sseData = document.getElementById('sse-data')
+    const orderId = {{ order_id| tojson }};
+    function startSSE() {
+        eventSource = new EventSource(`/sse/${orderId}`);
+        console.log("start tracking!");
+        document.getElementById("track-btn").disabled = true;
+        eventSource.onmessage = (event) => {
+            console.log("event.data");
+            sseData.innerHTML += event.data + '<br>'
+
+            if (event.data === 'delivered') {
+                sseData.innerHTML += '<strong> ✅</strong>'
+                stopSSE()
+
+            }
+        }
+        eventSource.onerror = function (event) {
+            console.error("SSE error", event);
+        };
+    }
+    function stopSSE() {
+        if (eventSource) {
+            eventSource.close()
+        }
+        document.getElementById("track-btn").hidden = true;
+    }
+</script>

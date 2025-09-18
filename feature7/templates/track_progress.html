@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Progress Page</title>
+</head>
+
+<body>
+    <h2>Task Progress</h2>
+    <div id="progress"></div>
+
+    <script>
+        const taskId = "{{task_id}}";
+        const eventSource = new EventSource(`/progress/${taskId}`);
+
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            document.getElementById("progress").innerHTML +=
+                `Status: ${data.status}, Message: ${data.message}` + '<br>';
+            if (data.status === "done") {
+                eventSource.close(); // stop listening
+            }
+        };
+    </script>
+</body>
+
+</html>

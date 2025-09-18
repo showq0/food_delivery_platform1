@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Driver Tracking</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+    <h2>Driver – Live Location Sender</h2>
+    <div id="status">Not tracking yet</div>
+    <button id="startBtn">Start Tracking</button>
+    <h2>{{order_id}}</h2>
+
+    <script>
+        const orderId = {{ order_id }};
+        const socket = io();
+
+        socket.on('connect', () => {
+            document.getElementById("status").textContent = "Connected. Ready to start tracking.";
+            socket.emit('join', { order_id: orderId, role: 'driver', sid: socket.id });
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById("status").textContent = "Connection closed";
+        });
+
+        function startSendingLocation() {
+            if (!navigator.geolocation) {
+                alert("Geolocation not supported");
+                return;
+            }
+
+            document.getElementById("status").textContent = "Tracking started...";
+
+            navigator.geolocation.watchPosition(
+                pos => {
+                    const data = { order_id: orderId, lon: pos.coords.longitude, lat: pos.coords.latitude };
+                    socket.emit('send_location', data);
+                },
+                err => console.error("Geolocation error:", err),
+                { enableHighAccuracy: true, maximumAge: 0 }
+            );
+        }
+
+        document.getElementById("startBtn").addEventListener("click", startSendingLocation);
+    </script>
+</body>
+
+</html>
